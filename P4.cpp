@@ -1,96 +1,83 @@
-//4. WAP to divide a LL into 2 parts depending on the info part: into ODD LL and EVEN LL and display both the LLs.
-
+// Write a Program to check nesting of parentheses using stack
 #include<stdio.h>
 #include<stdlib.h>
-struct node{
-	int info;
-	struct node *link;
-};
+#include<string.h>
+#define MAX 50
 
-struct node* create_list(struct node*start);
-void display(struct node *start);
-struct node *add(struct node *start, int data);
-struct node *odd(struct node *start1, struct node *start2);
-struct node *even(struct node *start1, struct node *start3);
+char expn[MAX], stack[MAX];
+int top = -1;
+
+void push(char sym);
+char pop();
+void check();
 
 int main(){
-	struct node *start1 = NULL, *start2 = NULL, *start3 = NULL;		
-	printf("\n-------------------------------------\nCreating List:\n");
-	start1 = create_list(start1);
-	printf("\n-------------------------------------\nEntered List: ");display(start1);
+	int ch;
+	while(1){
+		printf("\n--------------------\n1. Check Expression\n2. Exit ");
+		printf("\n\n Enter Your Choice: ");
+		scanf("%d", &ch);
 	
-	start2 = odd(start1,start2);
-	printf("\n\n--------------------------------\nList of Odd Numbers: \n");display(start2);
-	start3 = even(start1,start3);
-	printf("\n\n--------------------------------\nList of Even Numbers: \n");display(start3);
+		switch(ch){
+			case 1: printf("\n Enter Expression: ");
+				gets(expn);
+				gets(expn);
+				check();
+				break;
+			case 2: exit(1);
+				break;		
+			default: printf("\n\n Wrong Choice\n");
+		}	
+	}	
 }
 
-struct node *create_list(struct node *start){
-	int i,n,data;
-	printf("\nEnter number of nodes: ");
-	scanf("%d",&n);
-	start = NULL;
-	if(n==0)
-		return start;
-	printf("\nEnter Elements:\n");
-	for(i=1; i<=n; i++){
-		scanf("%d",&data);
-		start = add(start,data);
+void push(char sym){
+	if(top == MAX-1){
+		printf("\n***** Stack Overflow*****\n");
+		return;	
 	}
-	return start;
+	top= top + 1;
+	stack[top] = sym;
 }
 
-void display(struct node *start){
-	struct node *ptr;
-	if(start ==NULL)
-		printf("\nList is empty");
-	else{
-		ptr=start;
-		while(ptr!=NULL){
-			printf("%d  ", ptr->info);
-			ptr = ptr->link;
+char pop(){
+	char sym;
+	if(top == -1){
+		printf("\n***** Stack Underflow*****\n");
+		exit(1);	
+	}
+	sym = stack[top];
+	top= top - 1;
+	return sym;
+}
+
+void check(){
+	char temp;
+	int i, flag =0;
+	for(i=0; i<strlen(expn); i++){
+		if(expn[i] == '(' || expn[i] == '{' || expn[i] == '[')
+			push(expn[i]);
+		
+		if(expn[i] == ')' || expn[i] == '}' || expn[i] == ']'){
+			if(top == -1)
+				flag =1;
+			else{
+				temp = pop();
+				if(expn[i] == ')' && (temp == '{' || temp == '['))
+					flag = 1;
+				if(expn[i] == '}' && (temp == '(' || temp == '['))
+					flag = 1;
+				if(expn[i] == ']' && (temp == '(' || temp == '{'))
+					flag = 1;
+			}
 		}
 	}
-}
-
-struct node *add(struct node *start, int data){
-	struct node *temp, *p;
-	temp = (struct node*)malloc(sizeof(struct node));
-	temp ->info = data;
-	if(start == NULL){
-		temp ->info = data;
-		temp->link = start;
-		start = temp;
-		return start;
-	}
-	p = start;
-	while(p->link!= NULL)
-		p = p->link;
+	if(top >= 0)
+		flag = 1;
 	
-	p->link = temp;
-	temp->link = NULL;
-	return start;
-}
-
-struct node *odd(struct node *start1, struct node *start2){
-	struct node *p;	
-	p= start1;
-	while(p!=NULL){
-		if(p->info%2 == 1)
-				start2 = add(start2,p->info);
-		p=p->link;
-	}
-	return start2;
-}
-
-struct node *even(struct node *start1, struct node *start3){
-	struct node *p;	
-	p= start1;
-	while(p!=NULL){
-		if(p->info%2 == 0)
-				start3 = add(start3,p->info);
-		p=p->link;
-	}
-	return start3;
+	if(flag == 0)
+		printf("\n Valid Expression");
+	else
+		printf("\n Invalid Expression");
 }
 

@@ -1,88 +1,151 @@
+// Write a program for conversion of infix to postfix and evaluation of postfix
 #include<stdio.h>
 #include<stdlib.h>
-struct node{
-	int info;
-	struct node *link;
-};
+#include<string.h>
+#include<math.h>
+#define TAB '\t'
+#define BLANK ' '
+#define MAX 50
+void push(long int symbol);
+long int pop();
+int isEmpty();
+int isFull();
+void infix_to_postfix();
+long int eval_post();
+int instack_priority(char symbol);
+int symbol_priority(char symbol);
+int white_space(char symbol);
+char infix[MAX], postfix[MAX];
+long int stack[MAX]; int top;
 
-struct node* create_list(struct node*start);
-void display(struct node *start);
-struct node *add(struct node *start, int data);
-struct node *common(struct node *start1, struct node *start2, struct node *start3);
-
-int main()
-{
-	struct node *start1 = NULL, *start2 = NULL, *start3 = NULL;
-	printf("\n-------------------------------------\nCreating List 1:\n");
-	start1 = create_list(start1);
-	printf("\n-------------------------------------\nCreating List 2:\n");
-	start2 = create_list(start2);
-	
-	printf("\n-------------------------------------\nEntered Lists are:\n\nList1: ");display(start1);
-	printf("\nList2: ");display(start2);
-	start3 = common(start1,start2,start3);
-	printf("\n\n--------------------------------\nList of common elements: \n");display(start3);
+main(){
+	long int value; top = -1;
+	printf("\n Enter Infix Expression: ");
+	gets(infix);
+	infix_to_postfix();
+	printf("\n\n Postfix Expression: %s", postfix);
+	value = eval_post();
+	printf("\n\n Value of Expression: %ld", value);
 }
 
-struct node *create_list(struct node *start){
-	int i,n,data;
-	printf("\nEnter number of nodes: ");
-	scanf("%d",&n);
-	start = NULL;
-	if(n==0)
-		return start;
-	
-	for(i=1; i<=n; i++){
-		printf("\nEnter Element to be inserted: ");
-		scanf("%d",&data);
-		start = add(start,data);
+void push(long int symbol){
+	if(isFull()){
+		printf("\n\n Stack Overflow\n");
+		return;	
 	}
-	return start;
+	top= top + 1;
+	stack[top] = symbol;		
 }
-void display(struct node *start){
-	struct node *ptr;
-	if(start ==NULL)
-		printf("\nList is empty");
-	else{
-		ptr=start;
-		while(ptr!=NULL)
-		{
-			printf("%d  ", ptr->info);
-			ptr = ptr->link;
+
+long int pop(){
+	long int symbol;
+	if(isEmpty()){
+		printf("\n\n Stack Underflow\n");
+		exit(1);	
+	}
+	symbol = stack[top];
+	top= top - 1;
+	return symbol;
+}
+
+int isEmpty(){
+	if(top == -1)
+		return 1;
+	else
+		return 0;
+}
+int isFull(){
+	if(top == MAX-1)
+		return 1;
+	else
+		return 0;
+}
+
+long int eval_post(){
+	unsigned int i;
+	long int a,b, temp, result;
+	for(i=0; i<strlen(postfix); i++){
+		if(postfix[i] <= '9' && postfix[i] >= '0')
+			push(postfix[i] - '0');
+			
+		else{
+			a = pop(); b=pop();
+			switch(postfix[i]){
+				case '+': temp = b + a; break;
+				case '-': temp = b - a; break;				
+				case '*': temp = b * a; break;
+				case '/': temp = b / a; break;
+				case '%': temp = b % a; break;
+				case '^': temp = pow(b,a); break;
+			}
+			push(temp);
 		}
-	}	
-}
-
-struct node *add(struct node *start, int data){
-	struct node *temp, *p;
-	temp = (struct node*)malloc(sizeof(struct node));
-	temp ->info = data;
-	if(start == NULL){
-		temp ->info = data;
-		temp->link = start;
-		start = temp;
-		return start;
 	}
-	p = start;
-	while(p->link!= NULL)
-		p = p->link;
-	p->link = temp;
-	temp->link = NULL;
-	return start;
+	result = pop();
+	return result;
 }
 
-struct node *common(struct node *start1, struct node *start2, struct node *start3){
-	struct node *p1, *p2;	
-	p1= start1; p2 = start2;
-	while(p1->link!=NULL){
-		while(p2!=NULL){
-			if(p1->info == p2->info)
-				start3 = add(start3,p1->info);
-			p2=p2->link;
+void infix_to_postfix(){
+	unsigned int i, p =0;
+	char symbol,next;
+	for(i=0; i<strlen(infix); i++){
+		symbol = infix[i];
+		if(!white_space(symbol)){
+			switch(symbol){
+				case '(': push(symbol);
+					 break;
+				case ')': while((next=pop()) != '(')
+					postfix[p++] = next;
+					  break;
+		
+				case '+': 
+				case '-': 				
+				case '*': 
+				case '/': 
+				case '%': 
+				case '^': while(!isEmpty() && instack_priority(stack[top]) >= symbol_priority(symbol))
+					postfix[p++] = pop();
+					push(symbol);
+					break;
+				
+				default: postfix[p++] = symbol;
+			}
 		}
-		p1=p1->link; p2=start2;
 	}
-	return start3;
+	while(!isEmpty())
+		postfix[p++] = pop();
+	postfix[p++] = '\0';
 }
 
+int instack_priority(char symbol){
+	switch(symbol){
+		case '(': return 0;
+		case '+': 
+		case '-': return 1;
+		case '*': 
+		case '/': 
+		case '%': return 2;
+		case '^': return 4;
+		default: return 0;
+	}
+}
+int symbol_priority(char symbol){
+	switch(symbol){
+		case '(': return 0;
+		case '+': 
+		case '-': return 1;
+		case '*': 
+		case '/': 
+		case '%': return 2;
+		case '^': return 3;
+		default: return 0;
+	}
+}
+
+int white_space(char symbol){
+	if(symbol == BLANK || symbol == TAB)
+		return 1;
+	else
+		return 0;
+}
 
